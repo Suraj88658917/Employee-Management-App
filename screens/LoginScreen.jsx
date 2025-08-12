@@ -19,7 +19,8 @@ export default function LoginScreen({ navigation, setToken }) {
   const [loading, setLoading] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-const handleLogin = async () => {
+
+  const handleLogin = async () => {
   if (!email || !password) {
     return Alert.alert('Error', 'Please fill all fields');
   }
@@ -27,13 +28,21 @@ const handleLogin = async () => {
   setLoading(true);
 
   try {
-    const res = await fetch('http://192.168.1.8:8000/login', {
+    const res = await fetch('http://10.0.2.2:8000/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email.trim(), password }),
     });
 
-    const data = await res.json();
+    console.log('Status Code:', res.status);
+
+    let data;
+    try {
+      data = await res.json(); // safer than text + parse manually
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      return Alert.alert('Server Error', 'Invalid JSON from server');
+    }
 
     if (res.ok && data.token) {
       if (keepLoggedIn) {
@@ -41,11 +50,9 @@ const handleLogin = async () => {
       }
       setToken(data.token);
       Alert.alert('Success', 'Logged in successfully');
-
-      // Navigate to Home screen
       navigation.replace('Home');
     } else {
-      Alert.alert('Login Failed', data.error || 'Invalid credentials');
+      Alert.alert('Login Failed', data.error || data.message || 'Unknown error');
     }
   } catch (err) {
     Alert.alert('Network Error', err.message);

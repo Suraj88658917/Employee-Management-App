@@ -10,7 +10,6 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function RegisterScreen({ navigation }) {
@@ -20,44 +19,49 @@ export default function RegisterScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
-    if (!name || !email || !password) {
-      Alert.alert('Validation Error', 'All fields are required');
-      return;
-    }
+const handleRegister = async () => {
+  if (!name || !email || !password) {
+    Alert.alert('Validation Error', 'All fields are required');
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
+  try {
+    const res = await fetch('http://10.0.2.2:8000/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      }),
+    });
+
+    const rawText = await res.text();
+    console.log('Status Code:', res.status);
+    console.log('Raw Response:', rawText);
+
+    let data;
     try {
-      const res = await fetch('http://192.168.1.8:8000/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          password,
-        }),
-      });
-
-      const data = await res.json();
-      console.log('Register response:', data);
-
-      if (res.ok && data.token) {
-        Alert.alert('Success', 'Registered successfully. Please login.');
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        });
-      } else {
-        Alert.alert('Register Failed', data.error || data.message || 'Unknown error occurred');
-      }
-    } catch (err) {
-      console.error('Register Error:', err);
-      Alert.alert('Network Error', err.message || 'Failed to register');
-    } finally {
-      setLoading(false);
+      data = JSON.parse(rawText);
+    } catch {
+      throw new Error('Invalid JSON from server');
     }
-  };
+
+    if (res.ok) {
+      Alert.alert('Success', data?.message || 'Registered successfully.');
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    } else {
+      Alert.alert('Register Failed', data?.error || data?.message || 'Unknown error');
+    }
+  } catch (err) {
+    console.error('Register Error:', err);
+    Alert.alert('Network Error', err.message || 'Failed to register');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -94,7 +98,7 @@ export default function RegisterScreen({ navigation }) {
         />
       </View>
 
-      {/* Password with eye icon */}
+      {/* Password */}
       <View style={styles.inputContainer}>
         <Icon name="lock-closed-outline" size={20} color="#555" style={styles.icon} />
         <TextInput
@@ -114,7 +118,7 @@ export default function RegisterScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Button */}
+      {/* Register Button */}
       {loading ? (
         <ActivityIndicator size="large" color="#28a745" style={{ marginTop: 20 }} />
       ) : (

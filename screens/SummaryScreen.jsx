@@ -26,7 +26,7 @@ const SummaryScreen = () => {
   const fetchAttendanceReport = async () => {
     try {
       const response = await axios.get(
-        `http://192.168.1.8:8000/attendance-report-all-employees`,
+        `http://10.0.2.2:8000/attendance-report-all-employees`,
         {
           params: {
             month: currentDate.month() + 1, // moment months are 0-indexed

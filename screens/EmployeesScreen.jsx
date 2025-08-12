@@ -20,7 +20,7 @@ const EmployeesScreen = () => {
   useEffect(() => {
     const fetchEmployeeData = async () => {
       try {
-        const response = await axios.get("http://192.168.1.8:8000/employees"); // Replace with your IP
+        const response = await axios.get("http://10.0.2.2:8000/employees"); // Replace with your IP
         setEmployees(response.data);
       } catch (error) {
         console.log("Error fetching employee data:", error);

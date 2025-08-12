@@ -41,7 +41,7 @@ const UserScreen = ({ route }) => {
       };
 
       const response = await axios.post(
-        "http://192.168.1.8:8000/attendance", // Replace with your machine IP, not localhost
+        "http://10.0.2.2:8000/attendance", // Replace with your machine IP, not localhost
         attendanceData
       );
 
